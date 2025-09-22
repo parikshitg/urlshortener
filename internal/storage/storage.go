@@ -1,10 +1,7 @@
 package storage
 
-type Record struct {
-	URL  string
-	Code string
-}
-
+// Storage is an adapter interface, that defines the methods for our services
+// storage logic.
 type Storage interface {
 	GetCode(url string) (string, bool)
 	GetURL(code string) string
