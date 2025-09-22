@@ -4,14 +4,16 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/parikshitg/urlshortner/internal/service"
 )
 
 type resource struct {
+	svc *service.Service
 }
 
 // RegisterHandlers is used to register api endpoints under v1 api package.
-func RegisterHandlers(r *gin.Engine) {
-	res := resource{}
+func RegisterHandlers(r *gin.Engine, svc *service.Service) {
+	res := resource{svc}
 
 	// health is simple endpoint to check if the service is up or not
 	r.GET("/health", func(c *gin.Context) {

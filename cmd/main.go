@@ -6,6 +6,8 @@ import (
 
 	api "github.com/parikshitg/urlshortner/api/v1"
 	"github.com/parikshitg/urlshortner/internal/config"
+	"github.com/parikshitg/urlshortner/internal/service"
+	"github.com/parikshitg/urlshortner/internal/storage/memory"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +26,9 @@ func main() {
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
 
-	api.RegisterHandlers(r)
+	store := memory.NewMemStore()
+	svc := service.NewService(store, cfg)
+	api.RegisterHandlers(r, svc)
 
 	r.Run(fmt.Sprintf(":%s", cfg.Port))
 }
