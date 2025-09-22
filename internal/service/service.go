@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/parikshitg/urlshortner/internal/common"
 	"github.com/parikshitg/urlshortner/internal/config"
 	"github.com/parikshitg/urlshortner/internal/shortener"
 	"github.com/parikshitg/urlshortner/internal/storage"
@@ -38,8 +39,12 @@ func (s *Service) Shorten(ctx context.Context, url string) (string, error) {
 	return s.cfg.BaseURL + "/" + code, nil
 }
 
-func (s *Service) Metrics(ctx context.Context) (map[string]int, error) {
-	return nil, nil
+func (s *Service) Metrics(ctx context.Context, n int) ([]common.TopN, error) {
+	if n <= 0 {
+		n = s.cfg.TopN
+	}
+
+	return s.store.TopDomains(n), nil
 }
 
 func normalizeURL(raw string) (string, string, error) {

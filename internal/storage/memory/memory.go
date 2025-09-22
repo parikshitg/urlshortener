@@ -3,6 +3,8 @@ package memory
 import (
 	"sort"
 	"sync"
+
+	"github.com/parikshitg/urlshortner/internal/common"
 )
 
 // MemStore is an in memory storage unit for our service.
@@ -56,7 +58,7 @@ func (m *MemStore) Save(url, code, domain string) {
 }
 
 // TopDomains returns the top n domains based on domain hits.
-func (m *MemStore) TopDomains(n int) map[string]int {
+func (m *MemStore) TopDomains(n int) []common.TopN {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -83,9 +85,13 @@ func (m *MemStore) TopDomains(n int) map[string]int {
 		n = len(kvs)
 	}
 
-	res := make(map[string]int)
-	for i := 0; i < n; i++ {
-		res[kvs[i].domain] = kvs[i].hits
+	res := make([]common.TopN, n)
+	for i := range res {
+		res[i] = common.TopN{
+			Rank:      i,
+			Domain:    kvs[i].domain,
+			Shortened: kvs[i].hits,
+		}
 	}
 
 	return res

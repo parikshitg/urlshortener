@@ -1,5 +1,9 @@
 package storage
 
+import (
+	"github.com/parikshitg/urlshortner/internal/common"
+)
+
 // Storage is an adapter interface, that defines the methods for our services
 // storage logic.
 type Storage interface {
@@ -13,5 +17,5 @@ type Storage interface {
 	Save(url, code, domain string)
 
 	// TopDomains returns the top n domains based on domain hits.
-	TopDomains(n int) map[string]int
+	TopDomains(n int) []common.TopN
 }

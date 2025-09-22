@@ -7,9 +7,14 @@ import (
 )
 
 type Config struct {
-	Port       string
-	BaseURL    string
+	// Port is the port of the server. (default is 8080)
+	Port string
+	// BaseURL is used for making the final shortend url.
+	BaseURL string
+	// CodeLength is the length of the shortened uri. (default is 7)
 	CodeLength int
+	// TopN is top n shortened domains. (default is 3)
+	TopN int
 }
 
 func Load() (*Config, error) {
@@ -20,10 +25,16 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse code length: %w", err)
 	}
+	topN := getenv("TOP_N", "3")
+	n, err := strconv.Atoi(topN)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse top n: %w", err)
+	}
 	return &Config{
 		Port:       port,
 		BaseURL:    baseURL,
 		CodeLength: length,
+		TopN:       n,
 	}, nil
 }
 

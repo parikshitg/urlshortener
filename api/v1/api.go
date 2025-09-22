@@ -22,5 +22,5 @@ func RegisterHandlers(r *gin.Engine, svc *service.Service) {
 
 	v1 := r.Group("/v1")
 	v1.POST("/shorten", res.shorten)
-	v1.GET("/metrics", res.metrics)
+	v1.POST("/metrics", res.metrics)
 }
