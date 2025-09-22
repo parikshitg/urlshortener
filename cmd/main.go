@@ -3,17 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 
+	api "github.com/parikshitg/urlshortner/api/v1"
 	"github.com/parikshitg/urlshortner/internal/config"
 
 	"github.com/gin-gonic/gin"
 )
-
-// healthcheck is simple endpoint to check if the service is up or not
-func healthcheck(c *gin.Context) {
-	c.JSON(http.StatusOK, "up and running...")
-}
 
 func main() {
 	log.SetFlags(log.Lshortfile)
@@ -29,7 +24,7 @@ func main() {
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
 
-	r.GET("/healthcheck", healthcheck)
+	api.RegisterHandlers(r)
 
 	r.Run(fmt.Sprintf(":%s", cfg.Port))
 }

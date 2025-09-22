@@ -3,8 +3,6 @@ package memory
 import (
 	"sort"
 	"sync"
-
-	"github.com/parikshitg/urlshortner/internal/storage"
 )
 
 // MemStore is an in memory storage unit for our service.
@@ -20,7 +18,7 @@ type MemStore struct {
 }
 
 // NewMemStore creates an instance of MemStore.
-func NewMemStore() storage.Storage {
+func NewMemStore() *MemStore {
 	return &MemStore{
 		urlToCode:  make(map[string]string),
 		domainHits: make(map[string]int),
