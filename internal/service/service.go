@@ -47,6 +47,14 @@ func (s *Service) Metrics(ctx context.Context, n int) ([]common.TopN, error) {
 	return s.store.TopDomains(n), nil
 }
 
+func (s *Service) Resolve(ctx context.Context, code string) (string, bool) {
+	url := s.store.GetURL(code)
+	if url == "" {
+		return "", false
+	}
+	return url, true
+}
+
 func normalizeURL(raw string) (string, string, error) {
 	if !strings.HasPrefix(raw, "http://") && !strings.HasPrefix(raw, "https://") {
 		raw = "http://" + raw
