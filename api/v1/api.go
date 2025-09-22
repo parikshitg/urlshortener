@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/parikshitg/urlshortner/internal/service"
+	"github.com/parikshitg/urlshortener/internal/service"
 )
 
 type resource struct {

@@ -1,4 +1,4 @@
-APP_NAME=urlshortner
+APP_NAME=urlshortener
 
 build:
 	GO111MODULE=on go build -o $(APP_NAME) ./cmd

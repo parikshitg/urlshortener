@@ -1,4 +1,4 @@
-module github.com/parikshitg/urlshortner
+module github.com/parikshitg/urlshortener
 
 go 1.24.3
 

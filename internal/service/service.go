@@ -6,10 +6,10 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/parikshitg/urlshortner/internal/common"
-	"github.com/parikshitg/urlshortner/internal/config"
-	"github.com/parikshitg/urlshortner/internal/shortener"
-	"github.com/parikshitg/urlshortner/internal/storage"
+	"github.com/parikshitg/urlshortener/internal/common"
+	"github.com/parikshitg/urlshortener/internal/config"
+	"github.com/parikshitg/urlshortener/internal/shortener"
+	"github.com/parikshitg/urlshortener/internal/storage"
 )
 
 type Service struct {

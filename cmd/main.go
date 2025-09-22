@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	api "github.com/parikshitg/urlshortner/api/v1"
-	"github.com/parikshitg/urlshortner/internal/config"
-	"github.com/parikshitg/urlshortner/internal/service"
-	"github.com/parikshitg/urlshortner/internal/storage/memory"
+	api "github.com/parikshitg/urlshortener/api/v1"
+	"github.com/parikshitg/urlshortener/internal/config"
+	"github.com/parikshitg/urlshortener/internal/service"
+	"github.com/parikshitg/urlshortener/internal/storage/memory"
 
 	"github.com/gin-gonic/gin"
 )

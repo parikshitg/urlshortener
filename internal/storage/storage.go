@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/parikshitg/urlshortner/internal/common"
+	"github.com/parikshitg/urlshortener/internal/common"
 )
 
 // Storage is an adapter interface, that defines the methods for our services

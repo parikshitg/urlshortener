@@ -4,7 +4,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/parikshitg/urlshortner/internal/common"
+	"github.com/parikshitg/urlshortener/internal/common"
 )
 
 // MemStore is an in memory storage unit for our service.

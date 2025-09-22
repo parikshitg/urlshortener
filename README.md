@@ -1,6 +1,6 @@
-# URLSHORTNER
+# URLSHORTENER
 
-This is a simple Golang server written in Go for url shortner.
+This is a simple Golang server written in Go for url shortener.
 
 Note: This project uses Gin instead of net/http or Gorilla Mux because Gin provides:
 
@@ -29,7 +29,7 @@ make build
 Run:
 
 ```bash
-PORT=8080 BASE_URL=http://localhost:8080 ./urlshortner
+PORT=8080 BASE_URL=http://localhost:8080 ./urlshortener
 ```
 
 Or using the Makefile target:
@@ -49,7 +49,7 @@ curl -i http://localhost:8080/health
 Build image:
 
 ```bash
-docker build -t urlshortner .
+docker build -t urlshortener .
 ```
 
 Run container:
@@ -58,7 +58,7 @@ Run container:
 docker run --rm -p 8080:8080 \
   -e PORT=8080 \
   -e BASE_URL=http://localhost:8080 \
-  urlshortner
+  urlshortener
 ```
 
 ## API
