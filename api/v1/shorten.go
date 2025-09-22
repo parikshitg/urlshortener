@@ -3,6 +3,7 @@ package v1
 import (
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,6 +42,10 @@ func (r resource) shorten(c *gin.Context) {
 }
 
 func isValidURL(s string) bool {
+	if !strings.HasPrefix(s, "http://") && !strings.HasPrefix(s, "https://") {
+		s = "http://" + s
+	}
+
 	parsedURL, err := url.ParseRequestURI(s)
 	if err != nil {
 		return false

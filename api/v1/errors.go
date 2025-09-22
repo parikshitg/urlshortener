@@ -2,7 +2,7 @@ package v1
 
 type ErrorResponse struct {
 	Message string `json:"message"`
-	Error   string `json:"error"`
+	Error   string `json:"error,omitempty"`
 }
 
 func NewErrorResponse(message string, err error) *ErrorResponse {

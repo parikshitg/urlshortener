@@ -88,7 +88,7 @@ func (m *MemStore) TopDomains(n int) []common.TopN {
 	res := make([]common.TopN, n)
 	for i := range res {
 		res[i] = common.TopN{
-			Rank:      i,
+			Rank:      i + 1, // rank starts from 1
 			Domain:    kvs[i].domain,
 			Shortened: kvs[i].hits,
 		}
