@@ -8,6 +8,7 @@ import (
 	"github.com/parikshitg/urlshortener/internal/config"
 	"github.com/parikshitg/urlshortener/internal/service"
 	"github.com/parikshitg/urlshortener/internal/storage/memory"
+	"github.com/parikshitg/urlshortener/pkg/job"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +27,9 @@ func main() {
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
 
-	store := memory.NewMemStore()
+	store := memory.NewMemStore(cfg.Expiry)
+	go job.Job(cfg.Expiry, store.Purge)
+
 	svc := service.NewService(store, cfg)
 	api.RegisterHandlers(r, svc)
 

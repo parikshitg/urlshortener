@@ -31,8 +31,9 @@ type MemStore struct {
 }
 
 // NewMemStore creates an instance of MemStore.
-func NewMemStore() *MemStore {
+func NewMemStore(expiry time.Duration) *MemStore {
 	return &MemStore{
+		expiry:      expiry,
 		urlToRecord: make(map[string]Record),
 		domainHits:  make(map[string]int),
 	}
@@ -113,4 +114,16 @@ func (m *MemStore) TopDomains(n int) []common.TopN {
 	}
 
 	return res
+}
+
+func (m *MemStore) Purge() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	now := time.Now()
+	for url, r := range m.urlToRecord {
+		if now.After(r.Expiry) {
+			delete(m.urlToRecord, url)
+		}
+	}
 }

@@ -3,10 +3,11 @@ package memory
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestMemStore_SaveAndGet(t *testing.T) {
-	m := NewMemStore()
+	m := NewMemStore(time.Hour)
 	url := "https://abcd.com/path"
 	code := "xyz789"
 	domain := "abcd.com"
@@ -22,7 +23,7 @@ func TestMemStore_SaveAndGet(t *testing.T) {
 }
 
 func TestMemStore_SaveDuplicateUrls(t *testing.T) {
-	m := NewMemStore()
+	m := NewMemStore(time.Hour)
 	url := "https://abcd.com/x"
 	code := "abc"
 	url2 := "https://abcd.com/y"
@@ -42,7 +43,7 @@ func TestMemStore_SaveDuplicateUrls(t *testing.T) {
 }
 
 func TestMemStore_TopDomainsOrderingAndBounds(t *testing.T) {
-	m := NewMemStore()
+	m := NewMemStore(time.Hour)
 
 	// make hits: x:3, y:2, z:1
 	m.Save("https://x.com/1", "x1", "x.com")

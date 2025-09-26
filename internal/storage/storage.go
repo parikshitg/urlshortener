@@ -18,4 +18,7 @@ type Storage interface {
 
 	// TopDomains returns the top n domains based on domain hits.
 	TopDomains(n int) []common.TopN
+
+	// Purge deletes the expired records
+	Purge()
 }
