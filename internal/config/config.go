@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 )
 
 type Config struct {
@@ -14,13 +15,15 @@ type Config struct {
 	// CodeLength is the length of the shortened uri. (default is 7)
 	CodeLength int
 	// TopN is top n shortened domains. (default is 3)
-	TopN int
+	TopN   int
+	Expiry time.Duration
 }
 
 func Load() (*Config, error) {
 	port := getenv("PORT", "8080")
 	baseURL := getenv("BASE_URL", "http://localhost:"+port)
 	codeLength := getenv("CODE_LENGTH", "7")
+	expiry := getenv("EXPIRY", "1h")
 	length, err := strconv.Atoi(codeLength)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse code length: %w", err)
@@ -30,11 +33,18 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse top n: %w", err)
 	}
+
+	duration, err := time.ParseDuration(expiry)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse duration: %w", err)
+	}
+
 	return &Config{
 		Port:       port,
 		BaseURL:    baseURL,
 		CodeLength: length,
 		TopN:       n,
+		Expiry:     duration,
 	}, nil
 }
 

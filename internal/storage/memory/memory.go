@@ -3,17 +3,28 @@ package memory
 import (
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/parikshitg/urlshortener/internal/common"
 )
+
+type Record struct {
+	Domain      string
+	Code        string
+	OriginalUrl string
+	CreatedAt   time.Time
+	Expiry      time.Time
+}
 
 // MemStore is an in memory storage unit for our service.
 type MemStore struct {
 	// mu is ReadWrite mutex for shared access
 	mu sync.RWMutex
 
-	// urlToCode is a map of url and its shortened code
-	urlToCode map[string]string
+	expiry time.Duration
+
+	// urlToRecord is a map of url and its shortened code
+	urlToRecord map[string]Record
 
 	// domainHits is a map of domain and number of times that domain has been shortened
 	domainHits map[string]int
@@ -22,8 +33,8 @@ type MemStore struct {
 // NewMemStore creates an instance of MemStore.
 func NewMemStore() *MemStore {
 	return &MemStore{
-		urlToCode:  make(map[string]string),
-		domainHits: make(map[string]int),
+		urlToRecord: make(map[string]Record),
+		domainHits:  make(map[string]int),
 	}
 }
 
@@ -31,16 +42,16 @@ func NewMemStore() *MemStore {
 func (m *MemStore) GetCode(url string) (string, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	code, ok := m.urlToCode[url]
-	return code, ok
+	record, ok := m.urlToRecord[url]
+	return record.Code, ok
 }
 
 // GetURL takes a code and gives corresponding original url if exists.
 func (m *MemStore) GetURL(code string) string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	for url, c := range m.urlToCode {
-		if c == code {
+	for url, c := range m.urlToRecord {
+		if c.Code == code && time.Now().Before(c.Expiry) {
 			return url
 		}
 	}
@@ -51,8 +62,15 @@ func (m *MemStore) GetURL(code string) string {
 func (m *MemStore) Save(url, code, domain string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if _, exists := m.urlToCode[url]; !exists {
-		m.urlToCode[url] = code
+	if _, exists := m.urlToRecord[url]; !exists {
+		now := time.Now()
+		m.urlToRecord[url] = Record{
+			Domain:      domain,
+			Code:        code,
+			OriginalUrl: url,
+			CreatedAt:   now,
+			Expiry:      now.Add(m.expiry),
+		}
 		m.domainHits[domain]++
 	}
 }
