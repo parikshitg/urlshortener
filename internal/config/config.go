@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/parikshitg/urlshortener/internal/logger"
@@ -23,6 +24,24 @@ type Config struct {
 	// Simple logging configuration
 	LogLevel  string
 	LogFormat string
+	// CORS configuration
+	CORS CORSConfig
+}
+
+// CORSConfig holds CORS configuration options
+type CORSConfig struct {
+	// AllowedOrigins is a list of origins a cross-domain request can be executed from
+	AllowedOrigins []string
+	// AllowedMethods is a list of methods the client is allowed to use with cross-domain requests
+	AllowedMethods []string
+	// AllowedHeaders is a list of non-simple headers the client is allowed to use with cross-domain requests
+	AllowedHeaders []string
+	// ExposedHeaders indicates which headers are safe to expose to the API of a CORS API specification
+	ExposedHeaders []string
+	// AllowCredentials indicates whether the request can include user credentials like cookies, authorization headers or TLS client certificates
+	AllowCredentials bool
+	// MaxAge indicates how long (in seconds) the results of a preflight request can be cached
+	MaxAge int
 }
 
 func Load() (*Config, error) {
@@ -47,6 +66,9 @@ func Load() (*Config, error) {
 
 	logLevel, logFormat := logger.LoadSimpleConfig()
 
+	// Load CORS configuration
+	corsConfig := loadCORSConfig()
+
 	return &Config{
 		Port:       port,
 		BaseURL:    baseURL,
@@ -55,6 +77,7 @@ func Load() (*Config, error) {
 		Expiry:     duration,
 		LogLevel:   logLevel,
 		LogFormat:  logFormat,
+		CORS:       corsConfig,
 	}, nil
 }
 
@@ -63,4 +86,57 @@ func getenv(key, def string) string {
 		return v
 	}
 	return def
+}
+
+// loadCORSConfig loads CORS configuration from environment variables
+func loadCORSConfig() CORSConfig {
+	// Default CORS configuration - permissive for development
+	defaultOrigins := []string{"*"}
+	defaultMethods := []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	defaultHeaders := []string{"*"}
+	defaultExposedHeaders := []string{"Content-Length"}
+	defaultMaxAge := 12 * 60 * 60 // 12 hours
+
+	// Allow environment override for origins
+	origins := getenv("CORS_ALLOWED_ORIGINS", "*")
+	if origins == "*" {
+		defaultOrigins = []string{"*"}
+	} else {
+		// Split comma-separated origins
+		defaultOrigins = strings.Split(origins, ",")
+	}
+
+	// Allow environment override for methods
+	methods := getenv("CORS_ALLOWED_METHODS", "GET,POST,PUT,DELETE,OPTIONS")
+	if methods != "" {
+		// Split comma-separated methods
+		defaultMethods = strings.Split(methods, ",")
+	}
+
+	// Allow environment override for headers
+	headers := getenv("CORS_ALLOWED_HEADERS", "*")
+	if headers == "*" {
+		defaultHeaders = []string{"*"}
+	} else {
+		// Split comma-separated headers
+		defaultHeaders = strings.Split(headers, ",")
+	}
+
+	// Allow environment override for max age
+	maxAgeStr := getenv("CORS_MAX_AGE", "43200") // 12 hours in seconds
+	if maxAge, err := strconv.Atoi(maxAgeStr); err == nil {
+		defaultMaxAge = maxAge
+	}
+
+	// Allow credentials from environment
+	allowCredentials := getenv("CORS_ALLOW_CREDENTIALS", "false") == "true"
+
+	return CORSConfig{
+		AllowedOrigins:   defaultOrigins,
+		AllowedMethods:   defaultMethods,
+		AllowedHeaders:   defaultHeaders,
+		ExposedHeaders:   defaultExposedHeaders,
+		AllowCredentials: allowCredentials,
+		MaxAge:           defaultMaxAge,
+	}
 }

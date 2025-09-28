@@ -16,6 +16,7 @@ import (
 	"github.com/parikshitg/urlshortener/internal/storage/memory"
 	"github.com/parikshitg/urlshortener/pkg/job"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -54,6 +55,17 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
+
+	// Setup CORS middleware
+	corsConfig := cors.Config{
+		AllowOrigins:     cfg.CORS.AllowedOrigins,
+		AllowMethods:     cfg.CORS.AllowedMethods,
+		AllowHeaders:     cfg.CORS.AllowedHeaders,
+		ExposeHeaders:    cfg.CORS.ExposedHeaders,
+		AllowCredentials: cfg.CORS.AllowCredentials,
+		MaxAge:           time.Duration(cfg.CORS.MaxAge) * time.Second,
+	}
+	r.Use(cors.New(corsConfig))
 
 	svc := service.NewService(store, cfg, appLogger)
 	if svc == nil {
