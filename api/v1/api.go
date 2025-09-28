@@ -1,9 +1,8 @@
 package v1
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+	"github.com/parikshitg/urlshortener/internal/health"
 	"github.com/parikshitg/urlshortener/internal/service"
 )
 
@@ -12,13 +11,16 @@ type resource struct {
 }
 
 // RegisterHandlers is used to register api endpoints under v1 api package.
-func RegisterHandlers(r *gin.Engine, svc *service.Service) {
+func RegisterHandlers(r *gin.Engine, svc *service.Service, healthService *health.Service) {
 	res := resource{svc}
+	healthHandler := NewHealthHandler(healthService)
 
-	// health is simple endpoint to check if the service is up or not.
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "up and running...")
-	})
+	// Health check endpoints grouped under /health
+	healthGroup := r.Group("/health")
+	{
+		healthGroup.GET("/", healthHandler.Health)
+		healthGroup.GET("/ready", healthHandler.Ready)
+	}
 
 	// resolve redirects to original url.
 	r.GET("/:code", res.resolve)

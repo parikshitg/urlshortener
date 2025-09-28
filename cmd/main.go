@@ -12,6 +12,7 @@ import (
 
 	api "github.com/parikshitg/urlshortener/api/v1"
 	"github.com/parikshitg/urlshortener/internal/config"
+	"github.com/parikshitg/urlshortener/internal/health"
 	"github.com/parikshitg/urlshortener/internal/service"
 	"github.com/parikshitg/urlshortener/internal/storage/memory"
 	"github.com/parikshitg/urlshortener/pkg/job"
@@ -35,6 +36,9 @@ func main() {
 	// Initialize components
 	store := memory.NewMemStore(cfg.Expiry)
 
+	// Initialize health service
+	healthsvc := health.NewService(store)
+
 	// Start background job for purging expired records
 	go job.Job(ctx, cfg.Expiry, store.Purge)
 
@@ -44,7 +48,7 @@ func main() {
 	r.Use(gin.Logger())
 
 	svc := service.NewService(store, cfg)
-	api.RegisterHandlers(r, svc)
+	api.RegisterHandlers(r, svc, healthsvc)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.Port),
