@@ -15,6 +15,11 @@ func ShortCode(n int) (string, error) {
 		return "", fmt.Errorf("shortcode length must be positive, got %d", n)
 	}
 
+	// Set reasonable limits to prevent abuse
+	if n > 20 {
+		return "", fmt.Errorf("shortcode length too large, got %d (max 20)", n)
+	}
+
 	// Generate random bytes - need 8 bytes per character
 	randomBytes := make([]byte, n*8)
 	_, err := rand.Read(randomBytes)
@@ -39,6 +44,11 @@ func ShortCode(n int) (string, error) {
 func ShortCodeWithRetry(n int, maxRetries int, exists func(string) bool) (string, error) {
 	if maxRetries <= 0 {
 		maxRetries = 10 // Default retry limit
+	}
+
+	// Validate inputs
+	if exists == nil {
+		return "", fmt.Errorf("exists function cannot be nil")
 	}
 
 	for attempt := 0; attempt < maxRetries; attempt++ {

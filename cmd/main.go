@@ -37,9 +37,15 @@ func main() {
 
 	// Initialize components
 	store := memory.NewMemStore(cfg.Expiry)
+	if store == nil {
+		appLogger.Fatal("Failed to initialize storage")
+	}
 
 	// Initialize health service
 	healthService := service.NewHealthService(store, appLogger)
+	if healthService == nil {
+		appLogger.Fatal("Failed to initialize health service")
+	}
 
 	// Start background job for purging expired records
 	go job.Job(ctx, cfg.Expiry, store.Purge, appLogger)
@@ -50,6 +56,10 @@ func main() {
 	r.Use(gin.Logger())
 
 	svc := service.NewService(store, cfg, appLogger)
+	if svc == nil {
+		appLogger.Fatal("Failed to initialize service")
+	}
+
 	api.RegisterHandlers(r, svc, healthService)
 
 	server := &http.Server{
@@ -90,6 +100,7 @@ func gracefulShutdown(server *http.Server, cancel context.CancelFunc, logger *lo
 	// Attempt graceful shutdown
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		logger.Error("Server forced to shutdown", "error", err)
+		os.Exit(1)
 	} else {
 		logger.Info("Server gracefully shut down")
 	}

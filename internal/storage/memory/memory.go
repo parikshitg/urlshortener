@@ -41,6 +41,10 @@ func NewMemStore(expiry time.Duration) *MemStore {
 
 // GetCode takes an url and gives the corresponding unique code.
 func (m *MemStore) GetCode(url string) (string, bool) {
+	if url == "" {
+		return "", false
+	}
+
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	record, ok := m.urlToRecord[url]
@@ -52,6 +56,10 @@ func (m *MemStore) GetCode(url string) (string, bool) {
 
 // GetURL takes a code and gives corresponding original url if exists.
 func (m *MemStore) GetURL(code string) string {
+	if code == "" {
+		return ""
+	}
+
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	for url, c := range m.urlToRecord {
@@ -64,6 +72,10 @@ func (m *MemStore) GetURL(code string) string {
 
 // Save saves the url, code and domain hits in memstore.
 func (m *MemStore) Save(url, code, domain string) {
+	if url == "" || code == "" || domain == "" {
+		return // Skip invalid entries
+	}
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if _, exists := m.urlToRecord[url]; !exists {
@@ -81,6 +93,10 @@ func (m *MemStore) Save(url, code, domain string) {
 
 // TopDomains returns the top n domains based on domain hits.
 func (m *MemStore) TopDomains(n int) []common.TopN {
+	if n <= 0 {
+		return []common.TopN{}
+	}
+
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -133,6 +149,10 @@ func (m *MemStore) Purge() {
 
 // CodeExists checks if a shortcode already exists in the storage.
 func (m *MemStore) CodeExists(code string) bool {
+	if code == "" {
+		return false
+	}
+
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 

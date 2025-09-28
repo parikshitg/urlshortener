@@ -27,8 +27,19 @@ func (r resource) shorten(c *gin.Context) {
 	}
 
 	// validate request
+	if req.URL == "" {
+		c.JSON(http.StatusBadRequest, NewErrorResponse("url is required", nil))
+		return
+	}
+
 	if !isValidURL(req.URL) {
-		c.JSON(http.StatusBadRequest, NewErrorResponse("invalid url", nil))
+		c.JSON(http.StatusBadRequest, NewErrorResponse("invalid url format", nil))
+		return
+	}
+
+	// Check URL length to prevent abuse
+	if len(req.URL) > 2048 {
+		c.JSON(http.StatusBadRequest, NewErrorResponse("url too long", nil))
 		return
 	}
 

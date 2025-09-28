@@ -20,9 +20,15 @@ func (r resource) metrics(c *gin.Context) {
 		return
 	}
 
+	// validate request
+	if req.TopN < 0 {
+		c.JSON(http.StatusBadRequest, NewErrorResponse("topN must be non-negative", nil))
+		return
+	}
+
 	list, err := r.svc.Metrics(c.Request.Context(), req.TopN)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, NewErrorResponse("failed to find metrics", err))
+		c.JSON(http.StatusInternalServerError, NewErrorResponse("failed to retrieve metrics", err))
 		return
 	}
 

@@ -34,7 +34,7 @@ func (s *Service) Shorten(ctx context.Context, url string) (string, error) {
 	normalized, domain, err := normalizeURL(url)
 	if err != nil {
 		s.logger.Error("Failed to normalize URL", "url", url, "error", err)
-		return "", err
+		return "", fmt.Errorf("invalid URL: %w", err)
 	}
 
 	// Check if URL already exists
