@@ -11,3 +11,6 @@ tidy:
 
 test:
 	go test ./...
+
+generate-mocks:
+	mockgen -source=internal/storage/storage.go -destination=internal/storage/mocks/mock_storage.go -package=mocks
