@@ -2,8 +2,6 @@ package v1
 
 import (
 	"net/http"
-	"net/url"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,17 +30,6 @@ func (r resource) shorten(c *gin.Context) {
 		return
 	}
 
-	if !isValidURL(req.URL) {
-		c.JSON(http.StatusBadRequest, NewErrorResponse("invalid url format", nil))
-		return
-	}
-
-	// Check URL length to prevent abuse
-	if len(req.URL) > 2048 {
-		c.JSON(http.StatusBadRequest, NewErrorResponse("url too long", nil))
-		return
-	}
-
 	short, err := r.svc.Shorten(c.Request.Context(), req.URL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, NewErrorResponse("failed to shorten url", err))
@@ -50,17 +37,4 @@ func (r resource) shorten(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, &ShortenResponse{short})
-}
-
-func isValidURL(s string) bool {
-	if !strings.HasPrefix(s, "http://") && !strings.HasPrefix(s, "https://") {
-		s = "http://" + s
-	}
-
-	parsedURL, err := url.ParseRequestURI(s)
-	if err != nil {
-		return false
-	}
-
-	return parsedURL.Scheme != "" && parsedURL.Host != ""
 }
