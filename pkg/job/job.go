@@ -1,14 +1,21 @@
 package job
 
 import (
+	"context"
 	"log"
 	"time"
 )
 
-func Job(period time.Duration, job func()) {
+func Job(ctx context.Context, period time.Duration, job func()) {
+	ticker := time.NewTicker(period)
+	defer ticker.Stop()
+
 	for {
 		select {
-		case <-time.After(period):
+		case <-ctx.Done():
+			log.Println("Background job stopped")
+			return
+		case <-ticker.C:
 			log.Println("job called")
 			job()
 		}

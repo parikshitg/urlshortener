@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -34,7 +35,12 @@ func (s *Service) Shorten(ctx context.Context, url string) (string, error) {
 		return s.cfg.BaseURL + "/" + code, nil
 	}
 
-	code := shortener.ShortCode(normalized, s.cfg.CodeLength)
+	// Generate a unique shortcode with collision detection
+	code, err := shortener.ShortCodeWithRetry(s.cfg.CodeLength, 10, s.store.CodeExists)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate unique shortcode: %w", err)
+	}
+
 	s.store.Save(normalized, code, domain)
 	return s.cfg.BaseURL + "/" + code, nil
 }

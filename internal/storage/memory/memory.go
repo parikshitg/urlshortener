@@ -44,6 +44,9 @@ func (m *MemStore) GetCode(url string) (string, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	record, ok := m.urlToRecord[url]
+	if ok && time.Now().Before(record.Expiry) {
+		return record.Code, true
+	}
 	return record.Code, ok
 }
 
@@ -126,4 +129,18 @@ func (m *MemStore) Purge() {
 			delete(m.urlToRecord, url)
 		}
 	}
+}
+
+// CodeExists checks if a shortcode already exists in the storage.
+func (m *MemStore) CodeExists(code string) bool {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	now := time.Now()
+	for _, record := range m.urlToRecord {
+		if record.Code == code && now.Before(record.Expiry) {
+			return true
+		}
+	}
+	return false
 }

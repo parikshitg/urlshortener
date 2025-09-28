@@ -7,6 +7,9 @@ import (
 // Storage is an adapter interface, that defines the methods for our services
 // storage logic.
 type Storage interface {
+	// CodeExists checks if a shortcode already exists in the storage.
+	CodeExists(code string) bool
+
 	// GetCode takes an url and gives the corresponding unique code.
 	GetCode(url string) (string, bool)
 
