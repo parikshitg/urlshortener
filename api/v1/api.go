@@ -2,7 +2,6 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/parikshitg/urlshortener/internal/health"
 	"github.com/parikshitg/urlshortener/internal/service"
 )
 
@@ -11,7 +10,7 @@ type resource struct {
 }
 
 // RegisterHandlers is used to register api endpoints under v1 api package.
-func RegisterHandlers(r *gin.Engine, svc *service.Service, healthService *health.Service) {
+func RegisterHandlers(r *gin.Engine, svc *service.Service, healthService *service.HealthService) {
 	res := resource{svc}
 	healthHandler := NewHealthHandler(healthService)
 

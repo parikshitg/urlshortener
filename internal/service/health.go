@@ -1,4 +1,4 @@
-package health
+package service
 
 import (
 	"context"
@@ -29,25 +29,25 @@ type HealthResponse struct {
 	Storage   StorageHealth `json:"storage"`
 }
 
-// Service handles simple health check operations
-type Service struct {
+// HealthService handles health check operations
+type HealthService struct {
 	storage   storage.Storage
 	startTime time.Time
 }
 
-// NewService creates a new health service
-func NewService(storage storage.Storage) *Service {
-	return &Service{
+// NewHealthService creates a new health service
+func NewHealthService(storage storage.Storage) *HealthService {
+	return &HealthService{
 		storage:   storage,
 		startTime: time.Now(),
 	}
 }
 
 // Check performs a simple health check
-func (s *Service) Check(ctx context.Context) HealthResponse {
+func (h *HealthService) Check(ctx context.Context) HealthResponse {
 	// Simple storage check - just try to access storage
 	start := time.Now()
-	s.storage.CodeExists("health-check")
+	h.storage.CodeExists("health-check")
 	duration := time.Since(start)
 
 	status := StatusHealthy
@@ -58,7 +58,7 @@ func (s *Service) Check(ctx context.Context) HealthResponse {
 	return HealthResponse{
 		Status:    status,
 		Timestamp: time.Now(),
-		Uptime:    time.Since(s.startTime).String(),
+		Uptime:    time.Since(h.startTime).String(),
 		Storage: StorageHealth{
 			Status:   status,
 			Duration: duration.String(),

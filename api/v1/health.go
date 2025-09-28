@@ -3,17 +3,18 @@ package v1
 import (
 	"net/http"
 
+	"github.com/parikshitg/urlshortener/internal/service"
+
 	"github.com/gin-gonic/gin"
-	"github.com/parikshitg/urlshortener/internal/health"
 )
 
 // HealthHandler handles health check endpoints
 type HealthHandler struct {
-	healthService *health.Service
+	healthService *service.HealthService
 }
 
 // NewHealthHandler creates a new health handler
-func NewHealthHandler(healthService *health.Service) *HealthHandler {
+func NewHealthHandler(healthService *service.HealthService) *HealthHandler {
 	return &HealthHandler{
 		healthService: healthService,
 	}
@@ -32,7 +33,7 @@ func (h *HealthHandler) Ready(c *gin.Context) {
 	healthResponse := h.healthService.Check(ctx)
 
 	// Return 200 if healthy, 503 if degraded
-	if healthResponse.Status == health.StatusDegraded {
+	if healthResponse.Status == service.StatusDegraded {
 		c.JSON(http.StatusServiceUnavailable, healthResponse)
 		return
 	}
