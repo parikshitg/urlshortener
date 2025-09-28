@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/parikshitg/urlshortener/internal/logger"
 )
 
 type Config struct {
@@ -15,8 +17,12 @@ type Config struct {
 	// CodeLength is the length of the shortened uri. (default is 7)
 	CodeLength int
 	// TopN is top n shortened domains. (default is 3)
-	TopN   int
+	TopN int
+	// Expiry is the duration to live for the shortened url. (default is 1h)
 	Expiry time.Duration
+	// Simple logging configuration
+	LogLevel  string
+	LogFormat string
 }
 
 func Load() (*Config, error) {
@@ -39,12 +45,16 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to parse duration: %w", err)
 	}
 
+	logLevel, logFormat := logger.LoadSimpleConfig()
+
 	return &Config{
 		Port:       port,
 		BaseURL:    baseURL,
 		CodeLength: length,
 		TopN:       n,
 		Expiry:     duration,
+		LogLevel:   logLevel,
+		LogFormat:  logFormat,
 	}, nil
 }
 

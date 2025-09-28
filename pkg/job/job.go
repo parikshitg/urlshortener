@@ -2,21 +2,24 @@ package job
 
 import (
 	"context"
-	"log"
 	"time"
+
+	"github.com/parikshitg/urlshortener/internal/logger"
 )
 
-func Job(ctx context.Context, period time.Duration, job func()) {
+func Job(ctx context.Context, period time.Duration, job func(), logger *logger.Logger) {
 	ticker := time.NewTicker(period)
 	defer ticker.Stop()
+
+	logger.Info("Starting background job", "period", period.String())
 
 	for {
 		select {
 		case <-ctx.Done():
-			log.Println("Background job stopped")
+			logger.Info("Background job stopped")
 			return
 		case <-ticker.C:
-			log.Println("job called")
+			logger.Debug("Executing background job")
 			job()
 		}
 	}

@@ -15,8 +15,8 @@ func ShortCode(n int) (string, error) {
 		return "", fmt.Errorf("shortcode length must be positive, got %d", n)
 	}
 
-	// Generate random bytes
-	randomBytes := make([]byte, n*2) // Use extra bytes for better distribution
+	// Generate random bytes - need 8 bytes per character
+	randomBytes := make([]byte, n*8)
 	_, err := rand.Read(randomBytes)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate random bytes: %w", err)

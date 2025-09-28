@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,6 +11,7 @@ import (
 
 	api "github.com/parikshitg/urlshortener/api/v1"
 	"github.com/parikshitg/urlshortener/internal/config"
+	"github.com/parikshitg/urlshortener/internal/logger"
 	"github.com/parikshitg/urlshortener/internal/service"
 	"github.com/parikshitg/urlshortener/internal/storage/memory"
 	"github.com/parikshitg/urlshortener/pkg/job"
@@ -20,13 +20,16 @@ import (
 )
 
 func main() {
-	log.SetFlags(log.Lshortfile)
-
 	// load configuration
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal("failed to load config:", err)
+		fmt.Fprintf(os.Stderr, "failed to load config: %v\n", err)
+		os.Exit(1)
 	}
+
+	// Initialize logger
+	appLogger := logger.New(cfg.LogLevel, cfg.LogFormat)
+	appLogger.Info("Starting URL shortener service")
 
 	// Create context for graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())
@@ -36,17 +39,17 @@ func main() {
 	store := memory.NewMemStore(cfg.Expiry)
 
 	// Initialize health service
-	healthService := service.NewHealthService(store)
+	healthService := service.NewHealthService(store, appLogger)
 
 	// Start background job for purging expired records
-	go job.Job(ctx, cfg.Expiry, store.Purge)
+	go job.Job(ctx, cfg.Expiry, store.Purge, appLogger)
 
 	// Setup HTTP server
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
 
-	svc := service.NewService(store, cfg)
+	svc := service.NewService(store, cfg, appLogger)
 	api.RegisterHandlers(r, svc, healthService)
 
 	server := &http.Server{
@@ -56,28 +59,28 @@ func main() {
 
 	// Start server in a goroutine
 	go func() {
-		log.Printf("Starting server on port %s", cfg.Port)
+		appLogger.Info("Starting server", "port", cfg.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal("Failed to start server:", err)
+			appLogger.Fatal("Failed to start server", "error", err)
 		}
 	}()
 
 	// Setup graceful shutdown
-	gracefulShutdown(server, cancel)
+	gracefulShutdown(server, cancel, appLogger)
 }
 
 // gracefulShutdown handles signal listening and server shutdown
-func gracefulShutdown(server *http.Server, cancel context.CancelFunc) {
+func gracefulShutdown(server *http.Server, cancel context.CancelFunc, logger *logger.Logger) {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	// Wait for shutdown signal
 	sig := <-sigChan
-	log.Printf("Received signal: %v", sig)
-	log.Println("Initiating graceful shutdown...")
+	logger.Info("Received shutdown signal", "signal", sig.String())
+	logger.Info("Initiating graceful shutdown...")
 
 	// Stop background job first
-	log.Println("Stopping background job...")
+	logger.Info("Stopping background job...")
 	cancel()
 
 	// Create a context with timeout for graceful shutdown
@@ -86,8 +89,8 @@ func gracefulShutdown(server *http.Server, cancel context.CancelFunc) {
 
 	// Attempt graceful shutdown
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		log.Printf("Server forced to shutdown: %v", err)
+		logger.Error("Server forced to shutdown", "error", err)
 	} else {
-		log.Println("Server gracefully shut down")
+		logger.Info("Server gracefully shut down")
 	}
 }
