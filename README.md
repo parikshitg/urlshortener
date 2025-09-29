@@ -1,3 +1,5 @@
+![urlshortner logo](assets/logo.png)
+
 # URLSHORTENER
 
 This is a simple Golang server written in Go for url shortener.
@@ -17,6 +19,23 @@ Environment variables:
 - `BASE_URL` – Base URL used to construct returned short URLs (default: `http://localhost:8080`)
 - `CODE_LENGTH` – Length of generated short code (default: `7`)
 - `TOP_N` – Default number of top domains to return (default: `3`)
+- `EXPIRY` – TTL for shortened URLs, Go duration (default: `1h`)
+- `LOG_LEVEL` – `debug|info|warn|error|fatal` (default: `info`)
+- `LOG_FORMAT` – `text|json` (default: `text`)
+
+CORS:
+
+- `CORS_ALLOWED_ORIGINS` – CSV of origins or `*` (default: `*`)
+- `CORS_ALLOWED_METHODS` – CSV methods (default: `GET,POST,PUT,DELETE,OPTIONS`)
+- `CORS_ALLOWED_HEADERS` – CSV headers or `*` (default: `*`)
+- `CORS_MAX_AGE` – Seconds to cache preflight (default: `43200`)
+- `CORS_ALLOW_CREDENTIALS` – `true|false` (default: `false`)
+
+Rate Limiter (per-IP, fixed window):
+
+- `RATE_LIMIT_MAX_TOKENS` – Requests allowed per window (default: `1000`)
+- `RATE_LIMIT_EXPIRY` – Window duration, Go duration (default: `1h`)
+- `RATE_LIMIT_PURGE_INTERVAL` – Cleanup interval, Go duration (default: `10m`)
 
 ## Build and Run (Locally)
 
@@ -126,3 +145,12 @@ curl -i http://localhost:8080/abc1234
 ```
 
 Response: `302 Found` with `Location` header pointing to the original URL.
+
+
+<!--  
+Persistence 
+Bulk shortening 
+QR 
+support API docs 
+MRU 
+-->
