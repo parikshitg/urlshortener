@@ -26,6 +26,17 @@ type Config struct {
 	LogFormat string
 	// CORS configuration
 	CORS CORSConfig
+	// Rate Limiter configuration
+	RateLimiter RateLimiterConfig
+}
+
+type RateLimiterConfig struct {
+	// MaxTokens is the maximum number of tokens allowed per window. (default is 1000)
+	MaxTokens int
+	// Expiry is the duration of the fixed window. (default is 1h)
+	Expiry time.Duration
+	// PurgeInterval is the interval to purge expired entries. (default is 10m)
+	PurgeInterval time.Duration
 }
 
 // CORSConfig holds CORS configuration options
@@ -68,16 +79,22 @@ func Load() (*Config, error) {
 
 	// Load CORS configuration
 	corsConfig := loadCORSConfig()
+	// Load Rate Limiter configuration
+	rlConfig, err := loadRateLimiterConfig()
+	if err != nil {
+		return nil, err
+	}
 
 	return &Config{
-		Port:       port,
-		BaseURL:    baseURL,
-		CodeLength: length,
-		TopN:       n,
-		Expiry:     duration,
-		LogLevel:   logLevel,
-		LogFormat:  logFormat,
-		CORS:       corsConfig,
+		Port:        port,
+		BaseURL:     baseURL,
+		CodeLength:  length,
+		TopN:        n,
+		Expiry:      duration,
+		LogLevel:    logLevel,
+		LogFormat:   logFormat,
+		CORS:        corsConfig,
+		RateLimiter: rlConfig,
 	}, nil
 }
 
@@ -139,4 +156,31 @@ func loadCORSConfig() CORSConfig {
 		AllowCredentials: allowCredentials,
 		MaxAge:           defaultMaxAge,
 	}
+}
+
+// loadRateLimiterConfig loads Rate Limiter configuration from environment variables
+func loadRateLimiterConfig() (RateLimiterConfig, error) {
+	maxTokensStr := getenv("RATE_LIMIT_MAX_TOKENS", "1000")
+	maxTokens, err := strconv.Atoi(maxTokensStr)
+	if err != nil {
+		return RateLimiterConfig{}, fmt.Errorf("failed to parse RATE_LIMIT_MAX_TOKENS: %w", err)
+	}
+
+	expiryStr := getenv("RATE_LIMIT_EXPIRY", "1h")
+	expiry, err := time.ParseDuration(expiryStr)
+	if err != nil {
+		return RateLimiterConfig{}, fmt.Errorf("failed to parse RATE_LIMIT_EXPIRY: %w", err)
+	}
+
+	purgeStr := getenv("RATE_LIMIT_PURGE_INTERVAL", "10m")
+	purgeInterval, err := time.ParseDuration(purgeStr)
+	if err != nil {
+		return RateLimiterConfig{}, fmt.Errorf("failed to parse RATE_LIMIT_PURGE_INTERVAL: %w", err)
+	}
+
+	return RateLimiterConfig{
+		MaxTokens:     maxTokens,
+		Expiry:        expiry,
+		PurgeInterval: purgeInterval,
+	}, nil
 }

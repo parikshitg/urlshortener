@@ -12,9 +12,11 @@ import (
 	api "github.com/parikshitg/urlshortener/api/v1"
 	"github.com/parikshitg/urlshortener/internal/config"
 	"github.com/parikshitg/urlshortener/internal/logger"
+	"github.com/parikshitg/urlshortener/internal/middleware"
 	"github.com/parikshitg/urlshortener/internal/service"
 	"github.com/parikshitg/urlshortener/internal/storage/memory"
 	"github.com/parikshitg/urlshortener/pkg/job"
+	"github.com/parikshitg/urlshortener/pkg/ratelimiter"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -66,6 +68,11 @@ func main() {
 		MaxAge:           time.Duration(cfg.CORS.MaxAge) * time.Second,
 	}
 	r.Use(cors.New(corsConfig))
+
+	// Setup Rate Limiter middleware from config
+	rlStore := ratelimiter.NewRateStore(cfg.RateLimiter.MaxTokens, cfg.RateLimiter.Expiry)
+	go job.Job(ctx, cfg.RateLimiter.PurgeInterval, rlStore.Purge, appLogger)
+	r.Use(middleware.RateLimiter(rlStore))
 
 	svc := service.NewService(store, cfg, appLogger)
 	if svc == nil {
