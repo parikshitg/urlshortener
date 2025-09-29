@@ -11,6 +11,7 @@ import (
 	"github.com/parikshitg/urlshortener/internal/shortener"
 	"github.com/parikshitg/urlshortener/internal/storage"
 	"github.com/parikshitg/urlshortener/internal/validator"
+	"github.com/parikshitg/urlshortener/pkg/qr"
 )
 
 type Service struct {
@@ -99,4 +100,21 @@ func (s *Service) Resolve(ctx context.Context, code string) (string, bool) {
 
 	s.logger.Info("Code resolved", "code", code, "url", resolvedURL)
 	return resolvedURL, true
+}
+
+// QR takes an input URL, follows the same validation/shortening flow as Shorten,
+// then generates a PNG QR image encoding the resulting short URL.
+func (s *Service) QR(ctx context.Context, inputURL string, size int) ([]byte, error) {
+	shortURL, err := s.Shorten(ctx, inputURL)
+	if err != nil {
+		return nil, err
+	}
+	if size <= 0 {
+		size = 256
+	}
+	img, err := qr.PNG(shortURL, size)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate qr: %w", err)
+	}
+	return img, nil
 }

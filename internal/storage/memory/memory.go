@@ -46,12 +46,22 @@ func (m *MemStore) GetCode(url string) (string, bool) {
 	}
 
 	m.mu.RLock()
-	defer m.mu.RUnlock()
 	record, ok := m.urlToRecord[url]
-	if ok && time.Now().Before(record.Expiry) {
+	m.mu.RUnlock()
+
+	if !ok {
+		return "", false
+	}
+
+	now := time.Now()
+	if now.Before(record.Expiry) {
 		return record.Code, true
 	}
-	return record.Code, ok
+	// expired: delete and miss
+	m.mu.Lock()
+	delete(m.urlToRecord, url)
+	m.mu.Unlock()
+	return "", false
 }
 
 // GetURL takes a code and gives corresponding original url if exists.
@@ -76,19 +86,33 @@ func (m *MemStore) Save(url, code, domain string) {
 		return // Skip invalid entries
 	}
 
+	now := time.Now()
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if _, exists := m.urlToRecord[url]; !exists {
-		now := time.Now()
-		m.urlToRecord[url] = Record{
-			Domain:      domain,
-			Code:        code,
-			OriginalUrl: url,
-			CreatedAt:   now,
-			Expiry:      now.Add(m.expiry),
+
+	if existing, exists := m.urlToRecord[url]; exists {
+		if now.After(existing.Expiry) {
+			// overwrite expired
+			m.urlToRecord[url] = Record{
+				Domain:      domain,
+				Code:        code,
+				OriginalUrl: url,
+				CreatedAt:   now,
+				Expiry:      now.Add(m.expiry),
+			}
+			m.domainHits[domain]++
 		}
-		m.domainHits[domain]++
+		return
 	}
+
+	m.urlToRecord[url] = Record{
+		Domain:      domain,
+		Code:        code,
+		OriginalUrl: url,
+		CreatedAt:   now,
+		Expiry:      now.Add(m.expiry),
+	}
+	m.domainHits[domain]++
 }
 
 // TopDomains returns the top n domains based on domain hits.
