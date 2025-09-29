@@ -2,3 +2,5 @@ urlshortener
 main
 .DS_Store
 cmd
+data
+data_test

@@ -1,6 +1,6 @@
-![urlshortner logo](assets/logo.png)
-
 # URLSHORTENER
+
+![urlshortner logo](assets/logo.png)
 
 This is a simple Golang server written in Go for url shortener.
 
@@ -146,11 +146,3 @@ curl -i http://localhost:8080/abc1234
 
 Response: `302 Found` with `Location` header pointing to the original URL.
 
-
-<!--  
-Persistence 
-Bulk shortening 
-QR 
-support API docs 
-MRU 
--->

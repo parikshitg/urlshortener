@@ -14,6 +14,8 @@ import (
 	"github.com/parikshitg/urlshortener/internal/logger"
 	"github.com/parikshitg/urlshortener/internal/middleware"
 	"github.com/parikshitg/urlshortener/internal/service"
+	"github.com/parikshitg/urlshortener/internal/storage"
+	"github.com/parikshitg/urlshortener/internal/storage/badgerdb"
 	"github.com/parikshitg/urlshortener/internal/storage/memory"
 	"github.com/parikshitg/urlshortener/pkg/job"
 	"github.com/parikshitg/urlshortener/pkg/ratelimiter"
@@ -38,10 +40,20 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Initialize components
-	store := memory.NewMemStore(cfg.Expiry)
-	if store == nil {
-		appLogger.Fatal("Failed to initialize storage")
+	// Initialize storage based on config
+	var store storage.Storage
+	switch cfg.StorageBackend {
+	case "badger":
+		appLogger.Info("Using BadgerDB storage", "path", cfg.DataDir)
+		st, err := badgerdb.Open(badgerdb.Options{Path: cfg.DataDir, Expiry: cfg.Expiry})
+		if err != nil {
+			appLogger.Fatal("Failed to open BadgerDB", "error", err)
+		}
+		store = st
+		defer st.Close()
+	default:
+		appLogger.Info("Using in-memory storage")
+		store = memory.NewMemStore(cfg.Expiry)
 	}
 
 	// Initialize health service
@@ -74,6 +86,7 @@ func main() {
 	go job.Job(ctx, cfg.RateLimiter.PurgeInterval, rlStore.Purge, appLogger)
 	r.Use(middleware.RateLimiter(rlStore))
 
+	// Initialize main service with storage
 	svc := service.NewService(store, cfg, appLogger)
 	if svc == nil {
 		appLogger.Fatal("Failed to initialize service")

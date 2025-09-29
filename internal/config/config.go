@@ -24,6 +24,10 @@ type Config struct {
 	// Simple logging configuration
 	LogLevel  string
 	LogFormat string
+	// DataDir is the base directory for data (e.g., BadgerDB path)
+	DataDir string
+	// StorageBackend selects storage implementation: "memory" or "badger"
+	StorageBackend string
 	// CORS configuration
 	CORS CORSConfig
 	// Rate Limiter configuration
@@ -85,16 +89,21 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
+	dataDir := getenv("DATA_DIR", "./data")
+	storageBackend := getenv("STORAGE_BACKEND", "memory")
+
 	return &Config{
-		Port:        port,
-		BaseURL:     baseURL,
-		CodeLength:  length,
-		TopN:        n,
-		Expiry:      duration,
-		LogLevel:    logLevel,
-		LogFormat:   logFormat,
-		CORS:        corsConfig,
-		RateLimiter: rlConfig,
+		Port:           port,
+		BaseURL:        baseURL,
+		CodeLength:     length,
+		TopN:           n,
+		Expiry:         duration,
+		LogLevel:       logLevel,
+		LogFormat:      logFormat,
+		DataDir:        dataDir,
+		StorageBackend: strings.ToLower(storageBackend),
+		CORS:           corsConfig,
+		RateLimiter:    rlConfig,
 	}, nil
 }
 
