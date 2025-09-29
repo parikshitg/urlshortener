@@ -2,7 +2,49 @@
 
 ![urlshortner logo](assets/logo.png)
 
-This is a simple Golang server written in Go for url shortener.
+A production-ready URL shortener service built in Go with comprehensive features for modern web applications.
+
+## Features
+
+### Core Functionality
+- **URL Shortening**: Convert long URLs into short, shareable links
+- **URL Resolution**: Redirect short codes to original URLs with 302 redirects
+- **Custom Code Length**: Configurable short code length (default: 7 characters)
+- **TTL Support**: Automatic expiration of shortened URLs with configurable duration
+
+### Storage Options
+- **In-Memory Storage**: Fast, ephemeral storage for development/testing
+- **BadgerDB**: Persistent, embedded key-value store with native TTL support
+- **Configurable Backend**: Switch between storage backends via environment variables
+
+### Security & Performance
+- **Rate Limiting**: Per-IP fixed-window rate limiting to prevent abuse
+- **CORS Support**: Configurable Cross-Origin Resource Sharing headers
+- **Request Validation**: URL format validation and sanitization
+- **Concurrent Safe**: Thread-safe operations for high-traffic scenarios
+
+### Analytics & Monitoring
+- **Top Domains**: Track and rank most frequently shortened domains
+- **Health Checks**: Built-in health and readiness endpoints
+- **Structured Logging**: JSON/text logging with configurable levels
+- **Metrics Collection**: Domain-based analytics and usage statistics
+
+### QR Code Generation
+- **QR Code API**: Generate QR codes for any URL
+- **Configurable Size**: Customizable QR code dimensions
+- **PNG Output**: High-quality PNG image generation
+
+### Developer Experience
+- **Docker Support**: Containerized deployment with multi-stage builds
+- **Comprehensive Testing**: Unit tests, integration tests, and mocks
+- **Makefile Targets**: Easy build, run, and test commands
+- **Environment Configuration**: Extensive configuration via environment variables
+
+### API Features
+- **RESTful Design**: Clean, intuitive API endpoints
+- **JSON Responses**: Consistent JSON API responses
+- **Error Handling**: Proper HTTP status codes and error messages
+- **Middleware Support**: CORS, rate limiting, and logging middleware
 
 Note: This project uses Gin instead of net/http or Gorilla Mux because Gin provides:
 
@@ -37,6 +79,11 @@ Rate Limiter (per-IP, fixed window):
 - `RATE_LIMIT_EXPIRY` – Window duration, Go duration (default: `1h`)
 - `RATE_LIMIT_PURGE_INTERVAL` – Cleanup interval, Go duration (default: `10m`)
 
+Storage Backend:
+
+- `STORAGE_BACKEND` – `memory` or `badger` (default: `memory`)
+- `DATA_DIR` – Database directory for BadgerDB (default: `./data`)
+
 ## Build and Run (Locally)
 
 Build:
@@ -51,10 +98,14 @@ Run:
 PORT=8080 BASE_URL=http://localhost:8080 ./urlshortener
 ```
 
-Or using the Makefile target:
+Or using the Makefile targets:
 
 ```bash
+# Run with in-memory storage
 make run
+
+# Run with BadgerDB storage
+make run-badger
 ```
 
 Health check:
@@ -145,4 +196,74 @@ curl -i http://localhost:8080/abc1234
 ```
 
 Response: `302 Found` with `Location` header pointing to the original URL.
+
+### QR Code Generation
+
+`POST /v1/qr`
+
+Request body:
+
+```json
+{ "url": "https://www.example.com", "size": 256 }
+```
+
+Curl example:
+
+```bash
+curl -i -X POST http://localhost:8080/v1/qr \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.example.com","size":256}' \
+  --output qr.png
+```
+
+Response: `200 OK` with `image/png` content type and QR code image.
+
+### Health Check
+
+`GET /health` – Basic health check
+
+`GET /health/ready` – Readiness check (includes storage connectivity)
+
+Example:
+
+```bash
+curl -i http://localhost:8080/health
+```
+
+Response: `200 OK` with service status information.
+
+## Testing
+
+Run all tests:
+
+```bash
+make test
+```
+
+Run specific test suites:
+
+```bash
+# Unit tests
+go test ./...
+
+# Integration tests for BadgerDB
+go test ./internal/storage/badgerdb -v
+
+# API tests
+go test ./api/v1 -v
+```
+
+## Development
+
+Generate mocks:
+
+```bash
+make generate-mocks
+```
+
+Build for production:
+
+```bash
+make build
+```
 

@@ -17,3 +17,15 @@ run-badger:
 
 generate-mocks:
 	mockgen -source=internal/storage/storage.go -destination=internal/storage/mocks/mock_storage.go -package=mocks
+
+docker-build:
+	docker build -t $(APP_NAME) .
+
+docker-run:
+	docker run --rm -p 8080:8080 \
+	  -e PORT=8080 \
+	  -e BASE_URL=http://localhost:8080 \
+	  -e STORAGE_BACKEND=badger \
+	  -e DATA_DIR=/data \
+	  -v $(PWD)/data:/data \
+	  $(APP_NAME)
