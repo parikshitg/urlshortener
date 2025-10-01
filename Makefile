@@ -29,3 +29,15 @@ docker-run:
 	  -e DATA_DIR=/data \
 	  -v $(PWD)/data:/data \
 	  $(APP_NAME)
+
+bench:
+	go test ./... -run ^$$ -bench . -benchtime=5s -count=1
+
+bench-mem:
+	go test ./internal/storage/memory -run ^$$ -bench . -benchtime=5s -count=3
+
+bench-badger:
+	go test ./internal/storage/badgerdb -run ^$$ -bench . -benchtime=5s -count=3
+
+bench-badger-profile:
+	go test ./internal/storage/badgerdb -run ^$$ -bench BenchmarkBadger_GetURL -benchtime=10s -cpuprofile=cpu.out -memprofile=mem.out
